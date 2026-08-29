@@ -1,0 +1,14 @@
+---
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Enable Oracle database service
+  ansible.builtin.systemd:
+    name: oracle-db.service
+    enabled: true
+
+- name: Restart Oracle listener
+  ansible.builtin.command: "{{ oracle_home }}/bin/lsnrctl reload {{ oracle_listener_name }}"
+  become_user: oracle
+  changed_when: true

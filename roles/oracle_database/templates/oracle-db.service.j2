@@ -1,0 +1,18 @@
+[Unit]
+Description=Oracle Database {{ oracle_sid }}
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=oracle
+Group=oinstall
+Environment=ORACLE_HOME={{ oracle_home }}
+Environment=ORACLE_SID={{ oracle_sid }}
+ExecStart={{ oracle_home }}/bin/lsnrctl start {{ oracle_listener_name }}
+ExecStart={{ oracle_home }}/bin/sqlplus -s / as sysdba @/usr/local/sbin/oracle-db-start.sql
+ExecStop={{ oracle_home }}/bin/sqlplus -s / as sysdba @/usr/local/sbin/oracle-db-stop.sql
+
+[Install]
+WantedBy=multi-user.target

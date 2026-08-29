@@ -1,0 +1,37 @@
+---
+- name: Check Oracle listener process
+  ansible.builtin.shell: "{{ oracle_home }}/bin/lsnrctl status {{ oracle_listener_name }}"
+  become_user: oracle
+  register: listener_status
+  changed_when: false
+  failed_when: listener_status.rc != 0
+
+- name: Check Oracle instance process
+  ansible.builtin.shell: "pgrep -u oracle -f 'ora_pmon_{{ oracle_sid }}'"
+  register: pmon_status
+  changed_when: false
+  failed_when: pmon_status.rc != 0
+
+- name: Check database OPEN mode
+  ansible.builtin.shell: |
+    set -o pipefail
+    printf 'select open_mode from v$database;\nexit;\n' | {{ oracle_home }}/bin/sqlplus -s / as sysdba
+  args:
+    executable: /bin/bash
+  become_user: oracle
+  environment:
+    ORACLE_HOME: "{{ oracle_home }}"
+    ORACLE_SID: "{{ oracle_sid }}"
+    PATH: "{{ oracle_home }}/bin:/usr/bin:/bin"
+  register: database_status
+  changed_when: false
+  failed_when:
+    - database_status.rc != 0
+    - "'READ WRITE' not in database_status.stdout"
+
+- name: Report validation summary
+  ansible.builtin.debug:
+    msg:
+      - "listener={{ oracle_listener_name }}:{{ oracle_listener_port }} is available"
+      - "instance={{ oracle_sid }} process is running"
+      - "database output: {{ database_status.stdout | trim }}"

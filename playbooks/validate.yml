@@ -1,0 +1,9 @@
+---
+- name: Validate Oracle deployment
+  hosts: oracle
+  become: true
+  gather_facts: false
+  vars_files:
+    - ../inventory/group_vars/oracle.yml
+  roles:
+    - role: oracle_validate

@@ -1,0 +1,20 @@
+gdbName={{ oracle_db_name }}
+sid={{ oracle_sid }}
+templateName=General_Purpose.dbc
+createAsContainerDatabase=true
+numberOfPDBs=1
+pdbName={{ oracle_pdb_name }}
+characterSet=AL32UTF8
+nationalCharacterSet=AL16UTF16
+databaseType=MULTIPURPOSE
+memoryPercentage=40
+initParams=processes={{ oracle_processes }},open_cursors={{ oracle_open_cursors }}
+datafileDestination={{ oracle_data_dir }}
+recoveryAreaDestination={{ oracle_fast_recovery_dir }}
+storageType=FS
+listeners={{ oracle_listener_name }}:{{ oracle_listener_port }}
+createListener={{ oracle_listener_name }}
+responseFileVersion=/oracle/assistants/rspfmt_dbca_response_schema_v{{ oracle_version }}
+sysPassword={{ oracle_sys_password }}
+systemPassword={{ oracle_system_password }}
+

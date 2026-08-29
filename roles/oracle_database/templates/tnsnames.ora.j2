@@ -1,0 +1,11 @@
+{{ oracle_db_name }} =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = 127.0.0.1)(PORT = {{ oracle_listener_port }}))
+    (CONNECT_DATA = (SERVER = DEDICATED) (SERVICE_NAME = {{ oracle_db_name }}))
+  )
+
+{{ oracle_pdb_name }} =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = 127.0.0.1)(PORT = {{ oracle_listener_port }}))
+    (CONNECT_DATA = (SERVER = DEDICATED) (SERVICE_NAME = {{ oracle_pdb_name }}))
+  )

@@ -1,0 +1,85 @@
+---
+- name: Check Oracle home marker
+  ansible.builtin.stat:
+    path: "{{ oracle_home }}/bin/sqlplus"
+  register: oracle_home_marker
+
+- name: Unpack Oracle database home
+  ansible.builtin.unarchive:
+    src: "{{ oracle_install_media }}"
+    dest: "{{ oracle_sw_unpack_dir }}"
+    remote_src: true
+    owner: oracle
+    group: oinstall
+    creates: "{{ oracle_sw_unpack_dir }}/database/runInstaller"
+  when: not oracle_home_marker.stat.exists
+
+- name: Synchronize unpacked home to ORACLE_HOME
+  ansible.builtin.command:
+    cmd: "cp -a {{ oracle_sw_unpack_dir }}/database/. {{ oracle_home }}/"
+  args:
+    creates: "{{ oracle_home }}/runInstaller"
+  become_user: oracle
+  when: not oracle_home_marker.stat.exists
+
+- name: Render Oracle software response file
+  ansible.builtin.template:
+    src: db_install.rsp.j2
+    dest: /tmp/db_install.rsp
+    owner: oracle
+    group: oinstall
+    mode: "0600"
+
+- name: Install Oracle software silently
+  ansible.builtin.command:
+    cmd: "{{ oracle_home }}/runInstaller -silent -waitforcompletion -responseFile /tmp/db_install.rsp -ignorePrereqFailure"
+  become_user: oracle
+  args:
+    creates: "{{ oracle_home }}/.oracle.install.completed"
+  register: oracle_install_result
+
+- name: Mark Oracle software installed
+  ansible.builtin.file:
+    path: "{{ oracle_home }}/.oracle.install.completed"
+    state: touch
+    owner: oracle
+    group: oinstall
+    mode: "0600"
+  when: oracle_install_result is changed
+
+- name: Run root scripts required by Oracle installer
+  ansible.builtin.command: "{{ item }}"
+  loop:
+    - "{{ oracle_inventory_loc }}/orainstRoot.sh"
+    - "{{ oracle_home }}/root.sh"
+  args:
+    creates: "{{ item }}.oracle-automation.done"
+  register: root_script_result
+
+- name: Mark root script complete
+  ansible.builtin.file:
+    path: "{{ item.item }}.oracle-automation.done"
+    state: touch
+    owner: root
+    group: root
+    mode: "0600"
+  loop: "{{ root_script_result.results }}"
+  when: item.changed
+
+- name: Install Oracle environment profile
+  ansible.builtin.copy:
+    dest: /etc/profile.d/oracle.sh
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      export ORACLE_BASE={{ oracle_base }}
+      export ORACLE_HOME={{ oracle_home }}
+      export ORACLE_SID={{ oracle_sid }}
+      export PATH=$ORACLE_HOME/bin:$PATH
+      export LD_LIBRARY_PATH=$ORACLE_HOME/lib
+
+- name: Remove temporary response file
+  ansible.builtin.file:
+    path: /tmp/db_install.rsp
+    state: absent

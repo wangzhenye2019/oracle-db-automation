@@ -1,0 +1,32 @@
+---
+- name: Deploy Oracle single instance
+  hosts: oracle
+  become: true
+  any_errors_fatal: true
+  gather_facts: true
+  vars_files:
+    - ../inventory/group_vars/oracle.yml
+  pre_tasks:
+    - name: Require explicit deployment confirmation
+      ansible.builtin.assert:
+        that:
+          - oracle_deploy_confirm | bool
+        fail_msg: "Set oracle_deploy_confirm=true only after reviewing the inventory, variables and dry-run output."
+      when: not ansible_check_mode
+
+  roles:
+    - role: oracle_precheck
+    - role: oracle_os
+    - role: oracle_install
+    - role: oracle_database
+    - role: oracle_validate
+      when: not ansible_check_mode
+
+- name: Validate Oracle single instance
+  hosts: oracle
+  become: true
+  gather_facts: false
+  vars_files:
+    - ../inventory/group_vars/oracle.yml
+  roles:
+    - role: oracle_validate

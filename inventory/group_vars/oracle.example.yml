@@ -1,0 +1,31 @@
+---
+# 复制为 oracle.yml，并仅在 Vault/Secret 中填入密码。
+oracle_version: "19c"
+oracle_edition: "EE"
+oracle_db_name: "ORCLCDB"
+oracle_sid: "ORCLCDB"
+oracle_pdb_name: "ORCLPDB1"
+oracle_listener_name: "LISTENER"
+oracle_listener_port: 1521
+oracle_home: "/u01/app/oracle/product/19.0.0/dbhome_1"
+oracle_base: "/u01/app/oracle"
+oracle_inventory_loc: "/u01/app/oraInventory"
+oracle_data_dir: "/u02/oradata"
+oracle_fast_recovery_dir: "/u03/fast_recovery_area"
+oracle_install_media: "/secure/artifacts/LINUX.X64_193000_db_home.zip"
+# 安装包 SHA-256；留空则只检查文件存在，不建议生产留空。
+oracle_install_media_sha256: ""
+oracle_sw_unpack_dir: "/u01/stage/dbhome"
+oracle_memory_target_mb: 2048
+oracle_pga_target_mb: 512
+oracle_processes: 600
+oracle_open_cursors: 1000
+oracle_deploy_confirm: false
+oracle_manage_kernel: true
+oracle_manage_firewall: false
+oracle_manage_service: true
+
+# 敏感变量仅作为变量名示例；生产请在 group_vars/oracle/vault.yml 中定义。
+# oracle_sys_password: "CHANGE_ME"
+# oracle_system_password: "CHANGE_ME"
+# oracle_sysdba_password: "CHANGE_ME"

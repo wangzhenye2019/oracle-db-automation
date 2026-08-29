@@ -1,0 +1,44 @@
+---
+- name: Check supported architecture
+  ansible.builtin.assert:
+    that: ansible_architecture == 'x86_64'
+    fail_msg: "This first release supports Oracle Linux x86_64 only."
+
+- name: Check minimum memory
+  ansible.builtin.assert:
+    that: ansible_memtotal_mb | int >= 4096
+    fail_msg: "At least 4096 MB RAM is required for the baseline deployment."
+
+- name: Check required mount capacity
+  ansible.builtin.assert:
+    that:
+      - (ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_available') | first | int) >= 10737418240
+    fail_msg: "At least 10 GiB free space is required on /."
+
+- name: Check Oracle media exists on target
+  ansible.builtin.stat:
+    path: "{{ oracle_install_media }}"
+  register: oracle_media_stat
+
+- name: Require Oracle media
+  ansible.builtin.assert:
+    that:
+      - oracle_media_stat.stat.exists
+      - oracle_media_stat.stat.isreg
+    fail_msg: "Oracle installation media must exist as a regular file at oracle_install_media."
+
+- name: Check checksum when configured
+  ansible.builtin.assert:
+    that: oracle_media_stat.stat.checksum == oracle_install_media_sha256
+    fail_msg: "Oracle installation media SHA-256 does not match."
+  when: oracle_install_media_sha256 | length > 0
+
+- name: Validate deployment variables
+  ansible.builtin.assert:
+    that:
+      - oracle_db_name is match('^[A-Za-z][A-Za-z0-9_$#]{0,7}$')
+      - oracle_sid is match('^[A-Za-z][A-Za-z0-9_$#]{0,7}$')
+      - oracle_listener_port | int > 0
+      - oracle_memory_target_mb | int >= 1024
+      - oracle_data_dir != oracle_home
+    fail_msg: "Oracle database, listener, memory or directory variables are invalid."

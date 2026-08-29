@@ -1,0 +1,12 @@
+inventory/hosts.ini
+inventory/group_vars/oracle.yml
+inventory/group_vars/vault.yml
+*.retry
+*.log
+*.rsp
+*.zip
+*.rpm
+*.tar.gz
+.oracle.install.completed
+.DS_Store
+__pycache__/
